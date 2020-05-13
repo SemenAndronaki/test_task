@@ -1,0 +1,12 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.testng:testng:7.1.0'
+    implementation 'com.google.code.gson:gson:2.8.6'
+    testImplementation 'io.rest-assured:rest-assured:4.3.0'
+    implementation 'org.hamcrest:hamcrest:2.2'
+}
