@@ -2,6 +2,7 @@ package ru.rest.appManager;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import io.restassured.RestAssured;
@@ -26,34 +27,43 @@ public class RestHelper {
             return new HashSet<>();
         }
         JsonElement parsed = JsonParser.parseString(json);
-        JsonElement users = parsed.getAsJsonObject();
-        return new Gson().fromJson(users, new TypeToken<Set<User>>() {
-        }.getType());
+        JsonElement users = parsed.getAsJsonArray();
+        return new Gson().fromJson(users, new TypeToken<Set<User>>() {}.getType());
     }
 
     public void createUser(User user) {
         RestAssured.baseURI = app.getProperty("url.base");
-        given().urlEncodingEnabled(true).contentType(ContentType.JSON)
+        JsonObject json1 = new JsonObject();
+        json1.addProperty("createdAt", user.getCreatedAt());
+        json1.addProperty("email", user.getEmail());
+        json1.addProperty("id", 1);
+        json1.addProperty("firstName", user.getFirstName());
+        json1.addProperty("secondName", user.getSecondName());
 
-                .queryParam("createdAt", user.getCreatedAt())
-                .queryParam("email", user.getEmail())
-                .queryParam("id", 1)
-                .queryParam("firstName", user.getFirstName())
-                .queryParam("secondName", user.getSecondName())
+        given().log().all()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .body(json1.toString())
                 .post("/users");
     }
 
     public User patchUser(User expected) {
-        String json = given()
-                .formParam("id", expected.getId())
-                .formParam("firstName", expected.getFirstName())
-                .formParam("secondName", expected.getSecondName())
-                .formParam("createdAt", expected.getCreatedAt())
-                .formParam("email", expected.getEmail())
+        RestAssured.baseURI = app.getProperty("url.base");
+        JsonObject json1 = new JsonObject();
+        json1.addProperty("createdAt", expected.getCreatedAt());
+        json1.addProperty("email", expected.getEmail());
+        json1.addProperty("id", expected.getId());
+        json1.addProperty("firstName", expected.getFirstName());
+        json1.addProperty("secondName", expected.getSecondName());
+
+        String json =  given().log().all()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .body(json1.toString())
                 .patch(app.getProperty("url.base") + "/users/" + expected.getId()).asString();
+
         JsonElement parsed = JsonParser.parseString(json);
-        JsonElement users = parsed.getAsJsonObject().get("issues");
-        return new Gson().fromJson(users, new TypeToken<Set<User>>() {
-        }.getType());
+        JsonElement users = parsed.getAsJsonObject();
+        return new Gson().fromJson(users, User.class);
     }
 }
